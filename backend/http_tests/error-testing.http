@@ -1,0 +1,305 @@
+### Error Testing for Starkvault API
+### This file tests various error conditions and edge cases
+
+### Base URL
+@baseUrl = http://localhost:5000
+
+### Test Data
+@validEmail = error-test@example.com
+@validPassword = password123
+@validName = Error Test User
+
+###
+### AUTHENTICATION ERRORS
+###
+
+### 1. Signup with Missing Fields
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{validEmail}}"
+}
+
+###
+### 2. Signup with Invalid Email Format
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "{{validName}}",
+  "email": "invalid-email-format",
+  "password": "{{validPassword}}"
+}
+
+###
+### 3. Signup with Short Password
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "{{validName}}",
+  "email": "{{validEmail}}",
+  "password": "123"
+}
+
+###
+### 4. Signup with Empty Name
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "{{validEmail}}",
+  "password": "{{validPassword}}"
+}
+
+###
+### 5. Login with Non-existent User
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "{{validPassword}}"
+}
+
+###
+### 6. Login with Wrong Password
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{validEmail}}",
+  "password": "wrongpassword"
+}
+
+###
+### 7. Login with Missing Fields
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{validEmail}}"
+}
+
+###
+### 8. Access Protected Route Without Authentication
+GET {{baseUrl}}/api/auth/me
+
+###
+### 9. Logout Without Authentication
+POST {{baseUrl}}/api/auth/logout
+
+###
+### UPLOAD ERRORS
+###
+
+### 10. Upload Without Authentication
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=error1
+
+--error1
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+Test content
+--error1--
+
+###
+### 11. Upload Without File
+### First login to get authentication
+# @name loginForUpload
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "{{validName}}",
+  "email": "{{validEmail}}",
+  "password": "{{validPassword}}"
+}
+
+###
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{validEmail}}",
+  "password": "{{validPassword}}"
+}
+
+###
+### 12. Upload Without File (should fail)
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=error2
+
+--error2
+Content-Disposition: form-data; name="description"
+
+Upload without file
+--error2--
+
+###
+### 13. Upload with Invalid Boolean for isPublic
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=error3
+
+--error3
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+Test content
+--error3
+Content-Disposition: form-data; name="isPublic"
+
+invalid-boolean
+--error3--
+
+###
+### DOCUMENT ACCESS ERRORS
+###
+
+### 14. Get Non-existent Document
+GET {{baseUrl}}/api/upload/document/507f1f77bcf86cd799439011
+
+###
+### 15. Get Document with Invalid ID Format
+GET {{baseUrl}}/api/upload/document/invalid-id
+
+###
+### 16. Delete Non-existent Document
+DELETE {{baseUrl}}/api/upload/document/507f1f77bcf86cd799439011
+
+###
+### 17. Delete Document with Invalid ID Format
+DELETE {{baseUrl}}/api/upload/document/invalid-id
+
+###
+### 18. Get File with Non-existent Arweave Hash
+GET {{baseUrl}}/api/upload/file/nonexistent-arweave-hash
+
+###
+### 19. Get Status for Non-existent Arweave Hash
+GET {{baseUrl}}/api/upload/status/nonexistent-arweave-hash
+
+###
+### PAGINATION ERRORS
+###
+
+### 20. Get Documents with Invalid Page Number
+GET {{baseUrl}}/api/upload/documents?page=-1
+
+###
+### 21. Get Documents with Invalid Limit
+GET {{baseUrl}}/api/upload/documents?limit=0
+
+###
+### 22. Get Documents with Very Large Limit
+GET {{baseUrl}}/api/upload/documents?limit=10000
+
+###
+### MALFORMED REQUESTS
+###
+
+### 23. Send Invalid JSON
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{validEmail}}",
+  "password": "{{validPassword}}"
+  // Missing comma - invalid JSON
+}
+
+###
+### 24. Send Wrong Content-Type for JSON
+POST {{baseUrl}}/api/auth/login
+Content-Type: text/plain
+
+{
+  "email": "{{validEmail}}",
+  "password": "{{validPassword}}"
+}
+
+###
+### 25. Access Non-existent Endpoint
+GET {{baseUrl}}/api/nonexistent
+
+###
+### 26. Use Wrong HTTP Method
+DELETE {{baseUrl}}/api/auth/login
+
+###
+### DUPLICATE DATA ERRORS
+###
+
+### 27. Try to Signup with Existing Email
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Another User",
+  "email": "{{validEmail}}",
+  "password": "{{validPassword}}"
+}
+
+###
+### LARGE DATA TESTS
+###
+
+### 28. Upload with Very Long Description
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=error4
+
+--error4
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+Test content
+--error4
+Content-Disposition: form-data; name="description"
+
+This is an extremely long description that goes on and on and on to test how the system handles very long descriptions. It contains many words and sentences that might cause issues if there are length limits or if the system doesn't handle long text properly. This description continues for a very long time to ensure we test the boundaries of what the system can handle in terms of description length and content processing capabilities.
+--error4--
+
+###
+### 29. Upload with Many Tags
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=error5
+
+--error5
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+Test content
+--error5
+Content-Disposition: form-data; name="tags"
+
+tag1,tag2,tag3,tag4,tag5,tag6,tag7,tag8,tag9,tag10,tag11,tag12,tag13,tag14,tag15,tag16,tag17,tag18,tag19,tag20,verylongtagnamethatshouldtestlimits,anotherlongtagname,yetanotherlongtagname
+--error5--
+
+###
+### SPECIAL CHARACTERS TESTS
+###
+
+### 30. Upload with Special Characters in Filename
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=error6
+
+--error6
+Content-Disposition: form-data; name="file"; filename="test-file-with-special-chars-!@#$%^&*()_+.txt"
+Content-Type: text/plain
+
+Test content with special characters
+--error6--
+
+###
+### 31. Signup with Special Characters in Name
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "Test User with Special Chars !@#$%^&*()",
+  "email": "special-chars@example.com",
+  "password": "{{validPassword}}"
+}

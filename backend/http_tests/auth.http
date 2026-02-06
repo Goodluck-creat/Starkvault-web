@@ -1,0 +1,75 @@
+### Starkvault Authentication Endpoints
+### Base URL
+@baseUrl = http://localhost:5001
+@contentType = application/json
+
+### Variables (update these as needed)
+@testEmail = pascal@example.com
+@testPassword = password
+@testName = Pascal
+
+###
+### 1. Health Check
+GET {{baseUrl}}/api/health
+
+###
+### 2. Sign Up - Create New User
+POST {{baseUrl}}/api/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "name": "{{testName}}",
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}"
+}
+
+###
+### 3. Login - Get Authentication Cookie
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}"
+}
+
+###
+### 4. Get Current User Info (requires authentication)
+GET {{baseUrl}}/api/auth/me
+
+###
+### 5. Logout (requires authentication)
+POST {{baseUrl}}/api/auth/logout
+
+###
+### 6. Test Invalid Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "invalid@example.com",
+  "password": "wrongpassword"
+}
+
+###
+### 7. Test Signup with Invalid Data
+POST {{baseUrl}}/api/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "name": "",
+  "email": "invalid-email",
+  "password": "123"
+}
+
+###
+### 8. Test Duplicate Signup
+POST {{baseUrl}}/api/auth/signup
+Content-Type: {{contentType}}
+
+{
+  "name": "{{testName}}",
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}"
+}

@@ -1,0 +1,160 @@
+### Starkvault File Upload Endpoints
+### Base URL
+@baseUrl = http://localhost:5000
+
+### Variables (update these as needed)
+@testEmail = test@example.com
+@testPassword = password123
+@documentId = 507f1f77bcf86cd799439011
+@arweaveHash = your_arweave_transaction_hash_here
+
+### Prerequisites: Login first to get authentication cookie
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}"
+}
+
+###
+### 1. Upload File to Arweave
+### Note: Replace the file path with an actual file on your system
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=boundary123
+
+--boundary123
+Content-Disposition: form-data; name="file"; filename="test-document.txt"
+Content-Type: text/plain
+
+This is a test document content for Arweave upload.
+It contains some sample text to test the upload functionality.
+--boundary123
+Content-Disposition: form-data; name="description"
+
+Test document for Arweave upload
+--boundary123
+Content-Disposition: form-data; name="tags"
+
+test,document,arweave
+--boundary123
+Content-Disposition: form-data; name="isPublic"
+
+false
+--boundary123--
+
+###
+### 2. Upload File with Minimal Data
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=boundary456
+
+--boundary456
+Content-Disposition: form-data; name="file"; filename="minimal-test.txt"
+Content-Type: text/plain
+
+Minimal test file content.
+--boundary456--
+
+###
+### 3. Get User's Documents (with pagination)
+GET {{baseUrl}}/api/upload/documents
+
+###
+### 4. Get User's Documents with Search
+GET {{baseUrl}}/api/upload/documents?search=test&page=1&limit=5
+
+###
+### 5. Get User's Documents - Page 2
+GET {{baseUrl}}/api/upload/documents?page=2&limit=10
+
+###
+### 6. Get Document by ID
+### Note: Replace {{documentId}} with actual document ID from upload response
+GET {{baseUrl}}/api/upload/document/{{documentId}}
+
+###
+### 7. Get File from Arweave (proxy endpoint)
+### Note: Replace {{arweaveHash}} with actual Arweave transaction hash
+GET {{baseUrl}}/api/upload/file/{{arweaveHash}}
+
+###
+### 8. Check Arweave Transaction Status
+### Note: Replace {{arweaveHash}} with actual Arweave transaction hash
+GET {{baseUrl}}/api/upload/status/{{arweaveHash}}
+
+###
+### 9. Delete Document from Database
+### Note: Replace {{documentId}} with actual document ID
+DELETE {{baseUrl}}/api/upload/document/{{documentId}}
+
+###
+### 10. Test Upload without Authentication (should fail)
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=boundary789
+
+--boundary789
+Content-Disposition: form-data; name="file"; filename="unauthorized-test.txt"
+Content-Type: text/plain
+
+This should fail without authentication.
+--boundary789--
+
+###
+### 11. Test Upload without File (should fail)
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=boundary999
+
+--boundary999
+Content-Disposition: form-data; name="description"
+
+Upload without file should fail
+--boundary999--
+
+###
+### 12. Upload Public Document
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=boundary111
+
+--boundary111
+Content-Disposition: form-data; name="file"; filename="public-document.txt"
+Content-Type: text/plain
+
+This is a public document that can be accessed by others.
+--boundary111
+Content-Disposition: form-data; name="description"
+
+Public test document
+--boundary111
+Content-Disposition: form-data; name="tags"
+
+public,test,shared
+--boundary111
+Content-Disposition: form-data; name="isPublic"
+
+true
+--boundary111--
+
+###
+### 13. Upload Large Description and Tags
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=boundary222
+
+--boundary222
+Content-Disposition: form-data; name="file"; filename="detailed-document.txt"
+Content-Type: text/plain
+
+Document with detailed metadata for testing purposes.
+--boundary222
+Content-Disposition: form-data; name="description"
+
+This is a comprehensive test document with a very detailed description that includes multiple sentences and various information about the document's purpose, content, and intended use case for testing the Arweave upload functionality.
+--boundary222
+Content-Disposition: form-data; name="tags"
+
+comprehensive,detailed,metadata,testing,arweave,upload,functionality,document,storage,permanent
+--boundary222
+Content-Disposition: form-data; name="isPublic"
+
+false
+--boundary222--

@@ -1,0 +1,184 @@
+### Complete Starkvault Workflow Test
+### This file demonstrates a complete user workflow from signup to file management
+
+### Base URL
+@baseUrl = http://localhost:5000
+
+### Test User Data
+@workflowEmail = workflow@example.com
+@workflowPassword = workflow123
+@workflowName = Workflow Test User
+
+###
+### STEP 1: Health Check
+GET {{baseUrl}}/api/health
+
+###
+### STEP 2: Create New User Account
+# @name signup
+POST {{baseUrl}}/api/auth/signup
+Content-Type: application/json
+
+{
+  "name": "{{workflowName}}",
+  "email": "{{workflowEmail}}",
+  "password": "{{workflowPassword}}"
+}
+
+###
+### STEP 3: Login to Get Authentication Cookie
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{workflowEmail}}",
+  "password": "{{workflowPassword}}"
+}
+
+###
+### STEP 4: Verify Authentication - Get Current User
+GET {{baseUrl}}/api/auth/me
+
+###
+### STEP 5: Upload First Document
+# @name uploadDoc1
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=workflow1
+
+--workflow1
+Content-Disposition: form-data; name="file"; filename="important-contract.txt"
+Content-Type: text/plain
+
+IMPORTANT CONTRACT DOCUMENT
+
+This is a sample contract document that demonstrates the permanent storage capabilities of Arweave through the Starkvault platform.
+
+Contract Details:
+- Date: 2026-02-05
+- Parties: Company A and Company B
+- Terms: Standard service agreement
+- Duration: 12 months
+
+This document will be permanently stored on the Arweave blockchain and cannot be deleted or modified once uploaded.
+--workflow1
+Content-Disposition: form-data; name="description"
+
+Important business contract requiring permanent storage
+--workflow1
+Content-Disposition: form-data; name="tags"
+
+contract,business,important,legal,permanent
+--workflow1
+Content-Disposition: form-data; name="isPublic"
+
+false
+--workflow1--
+
+###
+### STEP 6: Upload Second Document (Public)
+# @name uploadDoc2
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=workflow2
+
+--workflow2
+Content-Disposition: form-data; name="file"; filename="public-announcement.txt"
+Content-Type: text/plain
+
+PUBLIC ANNOUNCEMENT
+
+This is a public announcement document that can be shared with others.
+
+Announcement Details:
+- Company: Starkvault Inc.
+- Date: 2026-02-05
+- Subject: New Arweave Integration Launch
+
+We are excited to announce the launch of our new Arweave integration for permanent document storage!
+--workflow2
+Content-Disposition: form-data; name="description"
+
+Public company announcement about Arweave integration
+--workflow2
+Content-Disposition: form-data; name="tags"
+
+announcement,public,company,arweave,launch
+--workflow2
+Content-Disposition: form-data; name="isPublic"
+
+true
+--workflow2--
+
+###
+### STEP 7: List All Documents
+GET {{baseUrl}}/api/upload/documents
+
+###
+### STEP 8: Search Documents by Tag
+GET {{baseUrl}}/api/upload/documents?search=contract
+
+###
+### STEP 9: Search Documents by Description
+GET {{baseUrl}}/api/upload/documents?search=announcement
+
+###
+### STEP 10: Get Specific Document Details
+### Note: Replace with actual document ID from upload response
+GET {{baseUrl}}/api/upload/document/REPLACE_WITH_ACTUAL_DOCUMENT_ID
+
+###
+### STEP 11: Check Arweave Transaction Status
+### Note: Replace with actual Arweave hash from upload response
+GET {{baseUrl}}/api/upload/status/REPLACE_WITH_ACTUAL_ARWEAVE_HASH
+
+###
+### STEP 12: Download File from Arweave
+### Note: Replace with actual Arweave hash from upload response
+GET {{baseUrl}}/api/upload/file/REPLACE_WITH_ACTUAL_ARWEAVE_HASH
+
+###
+### STEP 13: Upload Document with Validation Errors (should fail)
+POST {{baseUrl}}/api/upload/file
+Content-Type: multipart/form-data; boundary=workflow3
+
+--workflow3
+Content-Disposition: form-data; name="description"
+
+Document without file should fail validation
+--workflow3--
+
+###
+### STEP 14: Test Pagination
+GET {{baseUrl}}/api/upload/documents?page=1&limit=1
+
+###
+### STEP 15: Delete a Document (removes from database, not from Arweave)
+### Note: Replace with actual document ID
+DELETE {{baseUrl}}/api/upload/document/REPLACE_WITH_ACTUAL_DOCUMENT_ID
+
+###
+### STEP 16: Verify Document is Deleted from Database
+GET {{baseUrl}}/api/upload/documents
+
+###
+### STEP 17: Try to Access Deleted Document (should fail)
+### Note: Replace with the deleted document ID
+GET {{baseUrl}}/api/upload/document/REPLACE_WITH_DELETED_DOCUMENT_ID
+
+###
+### STEP 18: Logout
+POST {{baseUrl}}/api/auth/logout
+
+###
+### STEP 19: Try to Access Protected Endpoint After Logout (should fail)
+GET {{baseUrl}}/api/upload/documents
+
+###
+### STEP 20: Try to Login with Wrong Password (should fail)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{workflowEmail}}",
+  "password": "wrongpassword"
+}
